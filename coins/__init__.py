@@ -1,15 +1,14 @@
 """
 Coin change problems
 
-With unlimited coins:
-1. How many way for making the change?
-2. What's the minimum number of coins for making the change?
-3. What's the combination of making the change?
-
 With limited coins:
 1. How many way for making the change?
 2. What's the minimum number of coins for making the change?
 3. What's the combination of making the change?
+
+Special cases:
+1) For unlimited coins, the problems above can be solved with bottom up DP.
+2) For canonical coin systems, the problems above can be solved with greedy.
 """
 
 from collections import namedtuple
@@ -56,13 +55,17 @@ class ChangeMachine():
         if money < 0 or money > 0 and sum(coin_supplies.values()) <= 0:
             return 0
 
-        # Not choose the coin.
+        # 1) Not choose the coin.
         next_coin_supplies = coin_supplies.copy()  # Use a copy in recursion.
         value, number = next_coin_supplies.popitem()
         self._change(money, next_coin_supplies, attemp, ways)
 
-        # Choose the coin. These two statements avoid counting duplicated.
+        # 2) Choose the coin. 1) and 2) are mutual exclusive. So we won't have
+        # two same search paths in the recursive tree.
         if number > 0:
+            # Using mutable data structure in the recursion function. Since, we
+            # will need copies for recusive search. Mutable data structure is
+            # usually easier to update.
             next_coin_supplies = coin_supplies.copy()
             next_coin_supplies[value] -= 1
 
