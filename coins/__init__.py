@@ -82,10 +82,11 @@ class ChangeMachine():
         ways = self._change(money)
         return min(sum(way.values()) for way in ways)
 
-change_machine = ChangeMachine([CoinSet(1, 10),
-                                CoinSet(5, 2),
-                                CoinSet(10, 1)])
-print change_machine.way_to_change(10)
-print change_machine.minimum_coins_to_change(10)
-print change_machine.change(30)
-print change_machine.change(10)
+if __name__ == '__main__':
+    change_machine = ChangeMachine([CoinSet(1, 10),
+                                    CoinSet(5, 2),
+                                    CoinSet(10, 1)])
+    print change_machine.way_to_change(10)
+    print change_machine.minimum_coins_to_change(10)
+    print change_machine.change(30)
+    print change_machine.change(10)
