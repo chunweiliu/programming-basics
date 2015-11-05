@@ -17,14 +17,14 @@ class JSONParser(object):
         tokens.pop(0)  # Pop the '['
 
         array = []
-        while tokens[0] and tokens[0] != ']':
+        while tokens and tokens[0] != ']':
             if tokens[0] == '[':
                 array.append(self._parse_array(tokens))
-            if tokens[0] == '{':
+            elif tokens[0] == '{':
                 array.append(self._parse_object(tokens))
-
-            array.append(tokens[0])
-            tokens.pop(0)
+            else:
+                array.append(tokens[0])
+                tokens.pop(0)
 
         tokens.pop(0)  # Pop the ']'
         return array
@@ -33,7 +33,7 @@ class JSONParser(object):
         tokens.pop(0)  # Pop the '{'
 
         json_object = {}
-        while tokens[0] and tokens[0] != '}':
+        while tokens and tokens[0] != '}':
             key = tokens[0]
             tokens.pop(0)
 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
             "key2": 20.3,
             "foo": {
                 "hello1": "world1",
-                "key3": [200, 300]
+                "key3": [200, 300, {'key4': 400}]
             } }""").items():
         if isinstance(value, dict):
             for key2, value2 in value.items():
