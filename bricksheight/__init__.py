@@ -40,7 +40,7 @@ class Bricks(object):
             if not overlap:  # !
                 self.bird_view.append(region)
 
-        self.bird_view.sort(key=lambda region: region[2], reverse=True)
+        self.bird_view.sort(key=lambda region: region[2], reverse=True)  # !
 
     def height(self, point):
         for start, end, height in self.bird_view:
