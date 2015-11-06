@@ -6,6 +6,11 @@ Problems for practing the following concepts:
 - Test driven development
 
 ### Algorithms
-- Decision tree
+- Depth first search in an unique decision tree
 - Recursive descent parsing
 
+### Python
+- Recursive data type: E.g. Trie or something similar to `defaultdict(DataClass)`
+- Mutable copy data in recursion
+- Better naming by using `namedtuple` or `class` if needed
+- Better visualizing objects by using `__repr__`
