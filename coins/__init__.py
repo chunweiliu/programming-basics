@@ -1,5 +1,5 @@
 """
-Coin change problems
+Minimum coin change with limited ammount of coins
 
 With limited coins:
 1. How many way for making the change?
@@ -10,83 +10,125 @@ Special cases:
 1) For unlimited coins, the problems above can be solved with bottom up DP.
 2) For canonical coin systems, the problems above can be solved with greedy.
 """
-
-from collections import namedtuple
 from collections import defaultdict
+import unittest
 
-CoinSet = namedtuple('CoinSet', ['value', 'number'])
 
-
-class ChangeMachine():
+class ChangeMachine(object):
     def __init__(self, coin_supplies):
-        self.coin_supplies = defaultdict(int)
-        for value, number in coin_supplies:
-            self.coin_supplies[value] = number
+        self.coin_supplies = coin_supplies
 
     def change(self, money):
-        ways = self._change(money, None, defaultdict(int), [])
-        if ways:
-            min_coin_way, min_coins = ways[0], sum(ways[0].values())
-            for way in ways:
-                x = sum(way.values())
-                if x < min_coins:
-                    min_coins = x
-                    min_coin_way = way
+        if not self.coin_supplies:
+            return None
 
-            # Update current supplies and format output
-            coin_set = []
-            for value, number in min_coin_way.iteritems():
-                self.coin_supplies[value] -= number
-                coin_set.append(CoinSet(value, number))
+        ways = []
+        self._change(money, self.coin_supplies, ways=ways)
+        if not ways or not ways[0]:  # Empty change
+            return None
 
-            coin_set.sort(reverse=True)
-            return coin_set
-        return None
+        ways.sort(key=lambda way: sum(way.values()))
 
-    def _change(self, money, coin_supplies=None,
-                attemp=defaultdict(int), ways=[]):
-        if coin_supplies is None:
-            coin_supplies = self.coin_supplies
+        # Update coin supplies
+        for coin_value, coin_number in ways[0].iteritems():
+            self.coin_supplies[coin_value] -= coin_number
+        return ways[0]
 
+    def _change(self, money, coin_supplies, attemp=defaultdict(int), ways=[]):
         if money == 0:
             ways.append(attemp)
             return 1
 
-        if money < 0 or money > 0 and sum(coin_supplies.values()) <= 0:
+        if money < 0 or money > 0 and not any(coin_supplies.values()):
             return 0
 
-        # 1) Not choose the coin.
-        next_coin_supplies = coin_supplies.copy()  # Use a copy in recursion.
-        value, number = next_coin_supplies.popitem()
-        self._change(money, next_coin_supplies, attemp, ways)
+        new_coin_supplies = coin_supplies.copy()
+        coin_value, coin_number = new_coin_supplies.popitem()  # Random one
+        self._change(money, new_coin_supplies, attemp, ways)
 
-        # 2) Choose the coin. 1) and 2) are mutual exclusive. So we won't have
-        # two same search paths in the recursive tree.
-        if number > 0:
-            # Using mutable data structure in the recursion function. Since, we
-            # will need copies for recusive search. Mutable data structure is
-            # usually easier to update.
-            next_coin_supplies = coin_supplies.copy()
-            next_coin_supplies[value] -= 1
+        if coin_number > 0:
+            new_coin_supplies = coin_supplies.copy()
+            new_coin_supplies[coin_value] -= 1
 
-            next_attemp = attemp.copy()
-            next_attemp[value] += 1
-            self._change(money - value, next_coin_supplies,
-                         next_attemp, ways)
-        return ways
+            new_attemp = attemp.copy()
+            new_attemp[coin_value] += 1
+            self._change(money - coin_value, new_coin_supplies,
+                         new_attemp, ways)
 
-    def way_to_change(self, money):
-        return len(self._change(money))
 
-    def minimum_coins_to_change(self, money):
-        ways = self._change(money)
-        return min(sum(way.values()) for way in ways)
+class TestChangeMachine(unittest.TestCase):
+    def test_no_supplies(self):
+        coin_supplies = {}
+        change_machine = ChangeMachine(coin_supplies)
+
+        best_changes = change_machine.change(10)
+        expected_changes = None
+        self.assertEqual(expected_changes, best_changes)
+
+    def test_one_coin(self):
+        coin_supplies = {10: 1}
+        change_machine = ChangeMachine(coin_supplies)
+
+        best_changes = change_machine.change(10)
+        expected_changes = {10: 1}
+        self.assertEqual(expected_changes, best_changes)
+
+    def test_canonical(self):
+        coin_supplies = {10: 2, 5: 4, 1: 20}
+        change_machine = ChangeMachine(coin_supplies)
+
+        best_changes = change_machine.change(20)
+        expected_changes = {10: 2}
+        self.assertEqual(expected_changes, best_changes)
+
+    def test_uncanonical(self):
+        coin_supplies = {4: 2, 3: 2, 1: 2}
+        change_machine = ChangeMachine(coin_supplies)
+
+        best_changes = change_machine.change(6)
+        expected_changes = {3: 2}
+        self.assertEqual(expected_changes, best_changes)
+
+    def test_too_many_money(self):
+        coin_supplies = {10: 2, 5: 4, 1: 20}
+        change_machine = ChangeMachine(coin_supplies)
+
+        best_changes = change_machine.change(100)
+        expected_changes = None
+        self.assertEqual(expected_changes, best_changes)
+
+    def test_unable_change(self):
+        coin_supplies = {10: 2, 5: 4, 1: 1}
+        change_machine = ChangeMachine(coin_supplies)
+
+        best_changes = change_machine.change(22)
+        expected_changes = None
+        self.assertEqual(expected_changes, best_changes)
+
+    def test_changes(self):
+        coin_supplies = {10: 2, 5: 4, 1: 2}
+        change_machine = ChangeMachine(coin_supplies)
+
+        best_changes = change_machine.change(41)
+        expected_changes = {10: 2, 5: 4, 1: 1}
+        self.assertEqual(expected_changes, best_changes)
+
+        best_changes = change_machine.change(1)
+        expected_changes = {1: 1}
+        self.assertEqual(expected_changes, best_changes)
+
+        best_changes = change_machine.change(1)
+        expected_changes = None
+        self.assertEqual(expected_changes, best_changes)
+
+    def test_zero_change(self):
+        coin_supplies = {10: 2, 5: 4, 1: 2}
+        change_machine = ChangeMachine(coin_supplies)
+
+        best_changes = change_machine.change(0)
+        expected_changes = None
+        self.assertEqual(expected_changes, best_changes)
+
 
 if __name__ == '__main__':
-    change_machine = ChangeMachine([CoinSet(1, 10),
-                                    CoinSet(5, 2),
-                                    CoinSet(10, 1)])
-    print change_machine.way_to_change(10)
-    print change_machine.minimum_coins_to_change(10)
-    print change_machine.change(30)
-    print change_machine.change(10)
+    unittest.main()
