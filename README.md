@@ -6,7 +6,7 @@ Problems for practing the following concepts:
 - Test driven development
 
 ### Algorithms
-- Depth first search in an unique decision tree
+- Depth first search in a unique decision tree
 - Recursive descent parsing
 
 ### Python
