@@ -8,6 +8,7 @@ class Table(object):
         self.data = data  # List of List
 
     def select(self, projected_column_names):
+        # Columns
         column_indices = [j for j in range(len(self.column_names))
                           if self.column_names[j] in projected_column_names]
         rows = [[row[column_index] for column_index in column_indices]
@@ -15,6 +16,7 @@ class Table(object):
         return Table("Select", projected_column_names, rows)
 
     def where(self, column_name, value):
+        # Rows
         column_index = self.column_names.index(column_name)
         rows = [row for row in self.data if row[column_index] == value]
         return Table("Where", self.column_names, rows)
