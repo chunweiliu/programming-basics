@@ -31,6 +31,7 @@ class Excel(object):
     def _evaluate(self, cell_string):
         tokens = re.findall('\w*\d+|[+*-/]', cell_string)
 
+        # Parse the tokens until all of them are numerical and ready for eval.
         for i, _ in enumerate(tokens):
             while tokens[i][0].isalpha():
                 tokens[i] = self.data[tokens[i]]
