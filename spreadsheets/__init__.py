@@ -2,13 +2,7 @@ import re
 import unittest
 
 
-class Cell(object):
-    def __init__(self, cell_string):
-        self.string = cell_string
-        self.dependences = []
-
-
-class Excel(object):
+class SpeardSheet(object):
     def __init__(self):
         self.data = {}
 
@@ -20,13 +14,9 @@ class Excel(object):
             return None
 
         cell_string = self.data[cell_name]
-
         if cell_string[0] == '=':
             return self._evaluate(cell_string[1:])
-        elif cell_string.isdigit():
-            return float(cell_string)
-        else:
-            return cell_string
+        return float(cell_string) if cell_string.isdigit() else cell_string
 
     def _evaluate(self, cell_string):
         tokens = re.findall('\w*\d+|[+*-/]', cell_string)
@@ -42,23 +32,23 @@ class Excel(object):
 
 class TestExcel(unittest.TestCase):
     def test_empty_cell(self):
-        excel = Excel()
+        excel = SpeardSheet()
         self.assertEqual(excel.get_cell('A1'), None)
 
     def test_string(self):
-        excel = Excel()
+        excel = SpeardSheet()
         cell_string = 'a1'
         excel.set_cell('A1', cell_string)
         self.assertEqual(excel.get_cell('A1'), cell_string)
 
     def test_equation(self):
-        excel = Excel()
+        excel = SpeardSheet()
         cell_string = '1 + 2 * 3'
         excel.set_cell('A1', '=' + cell_string)
         self.assertEqual(excel.get_cell('A1'), eval(cell_string))
 
     def test_evaluation(self):
-        excel = Excel()
+        excel = SpeardSheet()
         excel.set_cell('A1', '1')
         excel.set_cell('A2', '2')
 
@@ -71,7 +61,7 @@ class TestExcel(unittest.TestCase):
                          excel.get_cell('A1') + excel.get_cell('A2'))
 
     def test_chain_evaluation(self):
-        excel = Excel()
+        excel = SpeardSheet()
         excel.set_cell('A1', '1')
         excel.set_cell('A2', '=A1')
 
@@ -80,7 +70,7 @@ class TestExcel(unittest.TestCase):
                          excel.get_cell('A1') + excel.get_cell('A2'))
 
     def test_chain_evaluation2(self):
-        excel = Excel()
+        excel = SpeardSheet()
         excel.set_cell('A1', '1')
         excel.set_cell('A2', '=A1')
 
