@@ -4,88 +4,59 @@ import unittest
 
 class SpeardSheet(object):
     def __init__(self):
-        self.data = {}
+        self.cells = {}
 
-    def set_cell(self, cell_name, cell_string):
-        self.data[cell_name] = cell_string
+    def set_cell(self, location, content):
+        self.cells[location] = content
 
-    def get_cell(self, cell_name):
-        if cell_name not in self.data:
-            return None
+    def get_cell(self, location):
+        if location not in self.cells:
+            return ''
+        expression = self.cells[location]
+        if expression[0] == '=':
+            return self._eval(expression[1:])
+        return float(expression) if expression.isdigit() else expression
 
-        cell_string = self.data[cell_name]
-        if cell_string[0] == '=':
-            return self._evaluate(cell_string[1:])
-        return float(cell_string) if cell_string.isdigit() else cell_string
-
-    def _evaluate(self, cell_string):
-        tokens = re.findall('\w*\d+|[+*-/]', cell_string)
-
-        # Parse the tokens until all of them are numerical and ready for eval.
+    def _eval(self, expression):
+        tokens = re.findall('\w*\d+|[+*-/]', expression)
         for i, _ in enumerate(tokens):
             while tokens[i][0].isalpha():
-                tokens[i] = self.data[tokens[i]]
+                tokens[i] = self.cells[tokens[i]]
             if tokens[i][0] == '=':
-                tokens[i] = str(self._evaluate(tokens[i][1:]))
+                tokens[i] = str(self._eval(tokens[i][1:]))
         return eval(' '.join(tokens))
 
 
-class TestExcel(unittest.TestCase):
-    def test_empty_cell(self):
-        excel = SpeardSheet()
-        self.assertEqual(excel.get_cell('A1'), None)
+class TestSpeardSheet(unittest.TestCase):
+    def test_read_empty(self):
+        speard_sheet = SpeardSheet()
+        self.assertEqual('', speard_sheet.get_cell('A1'))
 
-    def test_string(self):
-        excel = SpeardSheet()
-        cell_string = 'a1'
-        excel.set_cell('A1', cell_string)
-        self.assertEqual(excel.get_cell('A1'), cell_string)
+    def test_read_content(self):
+        speard_sheet = SpeardSheet()
+        speard_sheet.set_cell('A1', '100')
+        self.assertEqual(100, speard_sheet.get_cell('A1'))
 
-    def test_equation(self):
-        excel = SpeardSheet()
-        cell_string = '1 + 2 * 3'
-        excel.set_cell('A1', '=' + cell_string)
-        self.assertEqual(excel.get_cell('A1'), eval(cell_string))
+    def test_read_remote_content(self):
+        speard_sheet = SpeardSheet()
+        speard_sheet.set_cell('A1', '100')
+        speard_sheet.set_cell('A2', '=A1')
+        self.assertEqual(100, speard_sheet.get_cell('A2'))
 
-    def test_evaluation(self):
-        excel = SpeardSheet()
-        excel.set_cell('A1', '1')
-        excel.set_cell('A2', '2')
+    def test_read_remote_content2(self):
+        speard_sheet = SpeardSheet()
+        speard_sheet.set_cell('A1', '100')
+        speard_sheet.set_cell('A2', '200')
+        speard_sheet.set_cell('A3', '=A1 + A2')
+        self.assertEqual(300, speard_sheet.get_cell('A3'))
 
-        excel.set_cell('A3', '=A1 + A2')
-        self.assertEqual(excel.get_cell('A3'),
-                         excel.get_cell('A1') + excel.get_cell('A2'))
+    def test_read_remote_content3(self):
+        speard_sheet = SpeardSheet()
+        speard_sheet.set_cell('A1', '100')
+        speard_sheet.set_cell('A2', '=A1 + 100')
+        speard_sheet.set_cell('A3', '=A1 + A2')
+        self.assertEqual(300, speard_sheet.get_cell('A3'))
 
-        excel.set_cell('A2', '20')
-        self.assertEqual(excel.get_cell('A3'),
-                         excel.get_cell('A1') + excel.get_cell('A2'))
-
-    def test_chain_evaluation(self):
-        excel = SpeardSheet()
-        excel.set_cell('A1', '1')
-        excel.set_cell('A2', '=A1')
-
-        excel.set_cell('A3', '=A1 + A2')
-        self.assertEqual(excel.get_cell('A3'),
-                         excel.get_cell('A1') + excel.get_cell('A2'))
-
-    def test_chain_evaluation2(self):
-        excel = SpeardSheet()
-        excel.set_cell('A1', '1')
-        excel.set_cell('A2', '=A1')
-
-        excel.set_cell('A3', '=A1 + A2')
-        self.assertEqual(excel.get_cell('A3'),
-                         excel.get_cell('A1') + excel.get_cell('A2'))
-
-        excel.set_cell('A4', '=A3')
-        self.assertEqual(excel.get_cell('A4'), excel.get_cell('A3'))
-
-        excel.set_cell('A3', '0')
-        self.assertEqual(excel.get_cell('A4'), excel.get_cell('A3'))
-
-        excel.set_cell('A4', '1')
-        self.assertNotEqual(excel.get_cell('A4'), excel.get_cell('A3'))
 
 if __name__ == '__main__':
     unittest.main()
